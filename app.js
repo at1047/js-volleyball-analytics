@@ -1,8 +1,16 @@
 import { Contact } from './contact.js'
+import { Video } from './video.js'
 
 export function setup() {
+  const video = new Video(560, 315)
+
   const court = document.querySelector('#court')
+  const videoUrlButton = document.querySelector('#video-url-button')
+  const videoUrl= document.querySelector('#video-url')
   let rect = court.getBoundingClientRect();
+
+  const inputKeyInput = document.getElementById("input-keyInput");
+  const inputTimeOffset = document.getElementById("input-timeOffset");
 
   const padding = 50
 
@@ -12,18 +20,11 @@ export function setup() {
   const hOneM = courtHeight / 18
   const wOneM = courtWidth / 18
 
-  console.log(rect)
-
   var contactList = []
 
-  // court.addEventListener('click', (e) => {
-  //   let x = e.clientX - rect.left;
-  //   let y = e.clientY - rect.top;
-  //   const pos = getPosOnCourt(x, y, padding)
-  //   console.log("clientX: " + pos[0] +
-  //   " - clientY: " + pos[1])
-  //   console.log(e)
-  // })
+  inputKeyInput.addEventListener ("click", function() {
+  document.activeElement.blur();
+  });
 
   let mouseDownPos
   court.addEventListener('mousedown', (e) => {
@@ -35,10 +36,9 @@ export function setup() {
   court.addEventListener('mouseup', (e) => {
     const val = removeCircleMenu(e)
     if (val != null) {
-      addNewContact(contactList, val, mouseDownPos)
 
+      addNewContact(contactList, val, mouseDownPos, video.getTimestamp())
     }
-
   })
 
   let mouseKeyPos
@@ -47,99 +47,29 @@ export function setup() {
   }, false);
 
   document.addEventListener("keydown", (e) => {
-    console.log(e)
-    if (mouseKeyPos[0] > rect.left && mouseKeyPos[0] < rect.right
-      && mouseKeyPos[1] > rect.top && mouseKeyPos[1] < rect.bottom) {
-      var mouseKeyPosM = [Math.round((mouseKeyPos[0] - rect.left - padding)/wOneM*10)/10
-        ,Math.round((mouseKeyPos[1] - rect.top - padding)/hOneM*10)/10]
-      handleKeyPress(contactList, e.key, mouseKeyPosM)
-      // console.log(player.getCurrentTime())
-    }
+    console.log(mouseKeyPos)
+    var pointerInCourt = (mouseKeyPos[0] > rect.left && mouseKeyPos[0] < rect.right
+      && mouseKeyPos[1] > rect.top && mouseKeyPos[1] < rect.bottom)
+    var mouseKeyPosM = [Math.round((mouseKeyPos[0] - rect.left - padding)/wOneM*10)/10
+      ,Math.round((mouseKeyPos[1] - rect.top - padding)/hOneM*10)/10]
+    handleKeyPress(contactList, pointerInCourt, inputKeyInput, e.key, mouseKeyPosM, video.getTimestamp(), video)
   });
+
+
+  videoUrlButton.addEventListener("click", (e) => {
+    console.log(videoUrl.value)
+    video.changeVideo(videoUrl.value)
+  })
 
   const canvas = document.getElementById("canvas-court");
   setupCourt(canvas, rect.width, rect.height, padding)
-  // renderContact()
 
-  // document.addEventListener("DOMContentLoaded", () => {
-  //   const videoPlayer = document.getElementById("player");
-  //   const videoUrl = "https://www.youtube.com/embed/QkWOaqGn9Vg?si=uIrc2hE9vr_OSpJz"+"?enablejsapi=1"
-  //   videoPlayer.src = videoUrl
-  // })
+  video.setup()
 
 }
 
-var tag = document.createElement('script');
-tag.id = 'iframe-demo';
-tag.src = 'https://www.youtube.com/iframe_api';
-var firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-var player;
-window.onYouTubeIframeAPIReady = function () {
-   console.log("API is ready.")
-   player = new YT.Player('video-loader'/*Specific your div ID here for display the video.*/, {
-     videoId: 'cqMKaYtvMd4', // Specific your video ID http://www.youtube.com/embed/videoIDHere
-     width: '560', // Specific width
-     height: '315',  // Specific height
-     // playerVars: {
-     //  end: 0, autoplay: 1, loop: 0, controls: 0, showinfo: 0, modestbranding: 1, fs: 0, cc_load_policty: 0, iv_load_policy: 3, autohide: 0
-     // },
-     events: {
-      'onReady': onPlayerReady()
-     }
-    });
-   }
-
-window.onPlayerReady = function () {
-  console.log("My player is onReady");
-  console.log(player)
-}
-
-
-
-// var player;
-// window.onYouTubeIframeAPIReady = function() {
-//   console.log("player ready")
-//     player = new YT.Player('player', {
-//             playerVars: {'wmode': 'opaque', 'autohide': 1 , 'enablejsapi': 1 , 'origin': 'http://www.yousite.com', 'rel': 0},
-//         events: {
-//           'onReady': onPlayerReady,
-//           'onStateChange': onPlayerStateChange
-//         }
-//     });
-//   }
-//
-// function onPlayerReady(event) {
-//   console.log("debug")
-//   document.getElementById('player').style.borderColor = '#FF6D00';
-// }
-//
-//   function changeBorderColor(playerStatus) {
-//     var color;
-//     if (playerStatus == -1) {
-//       color = "#37474F"; // unstarted = gray
-//     } else if (playerStatus == 0) {
-//       color = "#FFFF00"; // ended = yellow
-//     } else if (playerStatus == 1) {
-//       color = "#33691E"; // playing = green
-//     } else if (playerStatus == 2) {
-//       color = "#DD2C00"; // paused = red
-//     } else if (playerStatus == 3) {
-//       color = "#AA00FF"; // buffering = purple
-//     } else if (playerStatus == 5) {
-//       color = "#FF6DOO"; // video cued = orange
-//     }
-//     if (color) {
-//       document.getElementById('player').style.borderColor = color;
-//     }
-//   }
-//   function onPlayerStateChange(event) {
-//     changeBorderColor(event.data);
-//   }
-
-function addNewContact(contactList, type, pos) {
-    const contact = new Contact(type, pos)
+function addNewContact(contactList, type, pos, time) {
+    const contact = new Contact(type, pos, time)
     contactList = [...contactList, contact]
     const contactDiv = contact.createDiv()
     const mainContact = document.getElementById("main-contact");
@@ -147,20 +77,36 @@ function addNewContact(contactList, type, pos) {
     return contactList
 }
 
-function handleKeyPress(contactList, key, pos) {
-  switch (key) {
-    case "q":
-      addNewContact(contactList, "Pass", pos)
-      break;
-    case "w":
-      addNewContact(contactList, "Set", pos)
-      break;
-    case "e":
-      addNewContact(contactList, "Hit", pos)
-      break;
-    case "r":
-      addNewContact(contactList, "Shank", pos)
-      break;
+function handleKeyPress(contactList, pointerInCourt, inputKeyInput, key, pos, time, video) {
+  console.log(key)
+  if (inputKeyInput.checked && pointerInCourt) {
+    switch (key) {
+      case "q":
+        addNewContact(contactList, "Pass", pos, time)
+        break;
+      case "w":
+        addNewContact(contactList, "Set", pos, time)
+        break;
+      case "e":
+        addNewContact(contactList, "Hit", pos, time)
+        break;
+      case "r":
+        addNewContact(contactList, "Shank", pos, time)
+        break;
+    }
+  }
+  if (inputKeyInput.checked) {
+    switch (key) {
+      case "ArrowRight":
+        video.seekVideo(5)
+        break;
+      case "ArrowLeft":
+        video.seekVideo(-5)
+        break;
+      case " ":
+        video.toggleVideo()
+        break;
+    }
   }
 }
 
@@ -216,9 +162,6 @@ function setupCourt(canvas, width, height, padding) {
   canvas.width  = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
 
-  const rect = canvas.getBoundingClientRect();
-
-
   const ctx = canvas.getContext("2d");
 
 
@@ -268,16 +211,6 @@ function setupCourt(canvas, width, height, padding) {
 
 }
 
-// function setupPlayers(container, players) {
-//
-//   var div = document.createElement("div");
-//   div.style.width = "100px";
-//   div.style.height = "100px";
-//   div.style.background = "red";
-//   div.style.color = "white";
-//   div.innerHTML = "Hello";
-//   container.appendChild(div)
-// }
 
 function drawLine(ctx, x, y, newX, newY) {
   ctx.beginPath();

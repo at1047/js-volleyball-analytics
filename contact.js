@@ -3,8 +3,10 @@ export class Contact {
   //   this.type = type
   //   this.location = location
   // }
-  constructor(type, pos) {
-    this.time = "10:12"
+  constructor(type, pos, time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = time - minutes * 60;
+    this.time = this.prependZero(Math.round(minutes)) + ":" + this.prependZero(Math.round(seconds))
     this.type = type
     this.pos = pos
     this.player = 1
@@ -13,28 +15,36 @@ export class Contact {
   createDiv() {
     var contactDiv = document.createElement("div")
     contactDiv.classList.add("contact")
-    contactDiv.style.width = "500px"
-    contactDiv.style.height = "20px"
+    // contactDiv.style.width = "500px"
+    // contactDiv.style.height = "20px"
     contactDiv.style.color = "white"
 
 
     var timeDiv = document.createElement("div")
     timeDiv.innerHTML = this.time
-    timeDiv.style.width = "50px"
+    timeDiv.classList.add("column-time")
+    // timeDiv.style.width = "50px"
     var typeDiv = document.createElement("div")
     typeDiv.innerHTML = this.type
-    typeDiv.style.width = "100px"
+    typeDiv.classList.add("column-type")
+    // typeDiv.style.width = "100px"
     var posDiv = document.createElement("div")
     posDiv.innerHTML = this.pos[0] + ", " + this.pos[1]
-    posDiv.style.width = "200px"
+    posDiv.classList.add("column-pos")
+    // posDiv.style.width = "200px"
     var playerDiv = document.createElement("div")
     playerDiv.innerHTML = this.player
-    playerDiv.style.width = "50px"
+    playerDiv.classList.add("column-player")
+    // playerDiv.style.width = "50px"
 
     contactDiv.appendChild(timeDiv)
     contactDiv.appendChild(typeDiv)
     contactDiv.appendChild(posDiv)
     contactDiv.appendChild(playerDiv)
     return contactDiv
+  }
+
+  prependZero(time) {
+    return ("0" + time).slice(-2)
   }
 }
