@@ -1,6 +1,8 @@
 import { Contact } from './contact.js'
 import { Video } from './video.js'
 
+var contactList = []
+
 export function setup() {
   const video = new Video(560, 315)
 
@@ -9,10 +11,12 @@ export function setup() {
   const videoUrl= document.querySelector('#video-url')
   const canvas = document.getElementById("canvas-court");
   let rect = court.getBoundingClientRect();
+  const contactContainer = document.getElementById("contact-list");
 
   const inputKeyInput = document.getElementById("input-keyInput");
   // const inputTimeOffset = document.getElementById("input-timeOffset");
   const buttonSaveContacts = document.getElementById("button-saveContacts");
+  const buttonClearContacts = document.getElementById("button-clearContacts");
 
   const padding = 50
 
@@ -22,7 +26,6 @@ export function setup() {
   const hOneM = courtHeight / 18
   const wOneM = courtWidth / 9
 
-  var contactList = []
 
   setupCourt(canvas, rect.width, rect.height, padding)
 
@@ -30,16 +33,33 @@ export function setup() {
   document.activeElement.blur();
   });
 
+  let playerSelected
+  document.addEventListener("click", (e) => {
+    if (e.target.classList.contains("player")) {
+      console.log("clicked on: "+ e.target.dataset.value)
+      e.target.classList.toggle("player-selected")
+      playerSelected = e.target.dataset.value
+
+      const players = document.querySelectorAll(".player");
+      for(var i = 0; i < players.length; i++) { // TODO only frontrow players for now
+        if (players[i] != e.target) {
+          players[i].classList.remove("player-selected")
+        }
+      }
+    }
+  })
+
   buttonSaveContacts.addEventListener ("click", function() {
-    // const contact = contactList[0]
-    console.log(contactList)
     var contactListStr = ""
     for (var i = 0; i < contactList.length; i++) {
-      console.log(contactList[i])
-      console.log(contactList[i].createRow())
       contactListStr = contactListStr + contactList[i].createRow()
     }
     console.log(contactListStr)
+  });
+
+  buttonClearContacts.addEventListener ("click", function() {
+    contactList = []
+    renderContacts(contactContainer)
   });
 
   let mouseDownPos
@@ -53,7 +73,8 @@ export function setup() {
     const val = removeCircleMenu(e)
     if (val != null) {
 
-      contactList = addNewContact(contactList, val, mouseDownPos, video.getTimestamp())
+      contactList = addNewContact(contactList, val, mouseDownPos, video.getTimestamp(), playerSelected)
+      renderContacts(contactContainer)
     }
   })
 
@@ -68,9 +89,9 @@ export function setup() {
       && mouseKeyPos[1] > rect.top && mouseKeyPos[1] < rect.bottom)
     var mouseKeyPosM = [Math.round((mouseKeyPos[0] - rect.left - padding)/wOneM*10)/10
       ,Math.round((mouseKeyPos[1] - rect.top - padding)/hOneM*10)/10]
-    contactList = handleKeyPress(contactList, pointerInCourt, inputKeyInput, e.key, mouseKeyPosM, video.getTimestamp(), video)
+    contactList = handleKeyPress(contactList, pointerInCourt, inputKeyInput, e.key, mouseKeyPosM, video.getTimestamp(), video, playerSelected)
+    renderContacts(contactContainer)
   });
-
 
 
 
@@ -82,29 +103,47 @@ export function setup() {
 
 }
 
-function addNewContact(contactList, type, pos, time) {
-    const contact = new Contact(type, pos, time)
-    contactList = [...contactList, contact]
-    const contactDiv = contact.createDiv()
-    const mainContact = document.getElementById("main-contact");
-    mainContact.appendChild(contactDiv)
-    return contactList
+function addNewContact(contactList, type, pos, time, playerSelected) {
+    const contact = new Contact(type, pos, time, playerSelected)
+    return [...contactList, contact]
 }
 
-function handleKeyPress(contactList, pointerInCourt, inputKeyInput, key, pos, time, video) {
+function renderContacts(container) {
+  container.innerHTML = ''
+  for (var i = 0; i < contactList.length; i++) {
+    const contact = contactList[i]
+    const newDiv = contact.createDiv()
+    newDiv.addEventListener('click', function(e) {
+      // specify the action to take when the div is clicked
+      if (e.target.classList.contains("column-remove")) {
+        console.log(newDiv.dataset.value)
+        contactList = contactList.filter((contact) => contact.time != newDiv.dataset.value)
+        console.log(contactList)
+        renderContacts(container, contactList)
+      }
+    })
+    container.appendChild(newDiv)
+  }
+  // const contact = new Contact()
+  // const contactDiv = contact.createDiv()
+  // console.log(contactDiv)
+  // const mainContact = document.getElementById("main-contact");
+}
+
+function handleKeyPress(contactList, pointerInCourt, inputKeyInput, key, pos, time, video, playerSelected) {
   console.log(key)
   if (inputKeyInput.checked && pointerInCourt) {
     switch (key) {
       case "q":
-        return addNewContact(contactList, "Pass", pos, time)
+        return addNewContact(contactList, "Pass", pos, time, playerSelected)
       case "w":
-        return addNewContact(contactList, "Set", pos, time)
+        return addNewContact(contactList, "Set", pos, time, playerSelected)
       case "e":
-        return addNewContact(contactList, "Hit", pos, time)
+        return addNewContact(contactList, "Hit", pos, time, playerSelected)
       case "r":
-        return addNewContact(contactList, "Ground", pos, time)
+        return addNewContact(contactList, "Ground", pos, time, playerSelected)
       case "t":
-        return addNewContact(contactList, "Serve", pos, time)
+        return addNewContact(contactList, "Serve", pos, time, playerSelected)
     }
   }
   if (inputKeyInput.checked) {
@@ -123,14 +162,6 @@ function handleKeyPress(contactList, pointerInCourt, inputKeyInput, key, pos, ti
   return contactList
 }
 
-// function renderContact() {
-//   console.log("Rendering contact")
-//   const contact = new Contact()
-//   const contactDiv = contact.createDiv()
-//   console.log(contactDiv)
-//   const mainContact = document.getElementById("main-contact");
-//   mainContact.appendChild(contactDiv)
-// }
 
 function addCircleMenu(court, top, left) {
   let items = document.querySelectorAll('.button-court');
@@ -151,19 +182,15 @@ function addCircleMenu(court, top, left) {
 }
 
 function removeCircleMenu(e) {
-  // document.getElementById("circle-menu").remove();
   const hovered = document.elementFromPoint(e.clientX, e.clientY)
   var value
 
   if (hovered.classList.contains("button-court")) {
-    console.log(hovered.dataset.value)
     value = hovered.dataset.value
-    // document.getElementById("debug").innerHTML = value;
   }
 
   let items = document.querySelectorAll('.button-court');
   for(var i = 0, l = items.length; i < l; i++) {
-    // items[i].style.display = "None"
     items[i].classList.add("button-hide")
   }
 
@@ -186,8 +213,6 @@ function setupCourt(canvas, width, height, padding) {
   const hOneM = courtHeight / 18
   const wOneM = courtWidth / 9
 
-  // ctx.fillRect(padding, padding, wOneM, hOneM)
-
   const threeMLineTop = padding + sixM
   const middleLine = padding + nineM
   const threeMLineBottom = padding + 2 * sixM
@@ -209,9 +234,9 @@ function setupCourt(canvas, width, height, padding) {
   let rect = court.getBoundingClientRect();
   var positions = [
     {x: 2, y: 3}
-    ,{x: 1.5, y: 8}
-    ,{x: 4.5, y: 8}
-    ,{x: 7.5, y: 8}
+    ,{x: 1.5, y: 7.5}
+    ,{x: 4.5, y: 7.5}
+    ,{x: 7.5, y: 7.5}
     ,{x: 7, y: 3}
     ,{x: 4.5, y: 1.5}
   ]
@@ -258,8 +283,4 @@ function drawLine(ctx, x, y, newX, newY) {
 function getPosOnCourt(x, y, padding) {
   return [x - padding, y - padding]
 }
-
-// function getPosOnCourtFromM(x, y, courtHeight, courtWidth) {
-//   return [x*courtWidth/9, y*courtHeight/9]
-// }
 
