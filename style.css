@@ -66,12 +66,19 @@ h1 {
 .main-left {
   height: 80vh;
   width: 55vw;
+  display:flex;
+  flex-direction: column;
 }
 
 .main-right {
   height: 80vh;
   width: 30vw;
 
+}
+
+#main-contact {
+  overflow: scroll;
+  flex-grow: 1;
 }
 
 #canvas-court {
@@ -101,16 +108,28 @@ h1 {
   display: None;
 }
 
-.player-court {
+.player {
   position: absolute;
-  height: 50px;
-  width: 50px;
-  font-size: 30px;
-  border-radius: 50%;
-  background-color: #9d709e;
+  height: 30px;
+  width: 30px;
+  font-size: 16px;
   text-align: center;
   vertical-align: middle;
-  line-height: 50px;
+  line-height: 30px;
+  opacity: 0.7;
+}
+
+.player:hover {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.player-top {
+  background-color: #fa544b;
+}
+
+.player-bottom {
+  background-color: #0394fc;
 }
 
 .contact {

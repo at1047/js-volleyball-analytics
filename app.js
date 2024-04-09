@@ -7,10 +7,12 @@ export function setup() {
   const court = document.querySelector('#court')
   const videoUrlButton = document.querySelector('#video-url-button')
   const videoUrl= document.querySelector('#video-url')
+  const canvas = document.getElementById("canvas-court");
   let rect = court.getBoundingClientRect();
 
   const inputKeyInput = document.getElementById("input-keyInput");
-  const inputTimeOffset = document.getElementById("input-timeOffset");
+  // const inputTimeOffset = document.getElementById("input-timeOffset");
+  const buttonSaveContacts = document.getElementById("button-saveContacts");
 
   const padding = 50
 
@@ -18,12 +20,26 @@ export function setup() {
   const courtWidth = rect.width - padding * 2
 
   const hOneM = courtHeight / 18
-  const wOneM = courtWidth / 18
+  const wOneM = courtWidth / 9
 
   var contactList = []
 
+  setupCourt(canvas, rect.width, rect.height, padding)
+
   inputKeyInput.addEventListener ("click", function() {
   document.activeElement.blur();
+  });
+
+  buttonSaveContacts.addEventListener ("click", function() {
+    // const contact = contactList[0]
+    console.log(contactList)
+    var contactListStr = ""
+    for (var i = 0; i < contactList.length; i++) {
+      console.log(contactList[i])
+      console.log(contactList[i].createRow())
+      contactListStr = contactListStr + contactList[i].createRow()
+    }
+    console.log(contactListStr)
   });
 
   let mouseDownPos
@@ -37,7 +53,7 @@ export function setup() {
     const val = removeCircleMenu(e)
     if (val != null) {
 
-      addNewContact(contactList, val, mouseDownPos, video.getTimestamp())
+      contactList = addNewContact(contactList, val, mouseDownPos, video.getTimestamp())
     }
   })
 
@@ -52,17 +68,15 @@ export function setup() {
       && mouseKeyPos[1] > rect.top && mouseKeyPos[1] < rect.bottom)
     var mouseKeyPosM = [Math.round((mouseKeyPos[0] - rect.left - padding)/wOneM*10)/10
       ,Math.round((mouseKeyPos[1] - rect.top - padding)/hOneM*10)/10]
-    handleKeyPress(contactList, pointerInCourt, inputKeyInput, e.key, mouseKeyPosM, video.getTimestamp(), video)
+    contactList = handleKeyPress(contactList, pointerInCourt, inputKeyInput, e.key, mouseKeyPosM, video.getTimestamp(), video)
   });
 
 
+
+
   videoUrlButton.addEventListener("click", (e) => {
-    console.log(videoUrl.value)
     video.changeVideo(videoUrl.value)
   })
-
-  const canvas = document.getElementById("canvas-court");
-  setupCourt(canvas, rect.width, rect.height, padding)
 
   video.setup()
 
@@ -82,17 +96,15 @@ function handleKeyPress(contactList, pointerInCourt, inputKeyInput, key, pos, ti
   if (inputKeyInput.checked && pointerInCourt) {
     switch (key) {
       case "q":
-        addNewContact(contactList, "Pass", pos, time)
-        break;
+        return addNewContact(contactList, "Pass", pos, time)
       case "w":
-        addNewContact(contactList, "Set", pos, time)
-        break;
+        return addNewContact(contactList, "Set", pos, time)
       case "e":
-        addNewContact(contactList, "Hit", pos, time)
-        break;
+        return addNewContact(contactList, "Hit", pos, time)
       case "r":
-        addNewContact(contactList, "Shank", pos, time)
-        break;
+        return addNewContact(contactList, "Ground", pos, time)
+      case "t":
+        return addNewContact(contactList, "Serve", pos, time)
     }
   }
   if (inputKeyInput.checked) {
@@ -108,6 +120,7 @@ function handleKeyPress(contactList, pointerInCourt, inputKeyInput, key, pos, ti
         break;
     }
   }
+  return contactList
 }
 
 // function renderContact() {
@@ -123,7 +136,7 @@ function addCircleMenu(court, top, left) {
   let items = document.querySelectorAll('.button-court');
   const menuCount = items.length
   const theta = 2*Math.PI/menuCount
-  const offset = 30
+  const offset = 50
 
   for(var i = 0, l = items.length; i < l; i++) {
     items[i].classList.remove("button-hide")
@@ -170,8 +183,8 @@ function setupCourt(canvas, width, height, padding) {
 
   const sixM = courtHeight / 3
   const nineM = courtHeight / 2
-  // const hOneM = courtHeight / 18
-  // const wOneM = courtWidth / 18
+  const hOneM = courtHeight / 18
+  const wOneM = courtWidth / 9
 
   // ctx.fillRect(padding, padding, wOneM, hOneM)
 
@@ -193,22 +206,44 @@ function setupCourt(canvas, width, height, padding) {
   drawLine(ctx, padding, threeMLineBottom, width-padding, threeMLineBottom)
   drawLine(ctx, padding, middleLine, width-padding, middleLine)
 
-  // var positions = [{x: 2, y: 1.5}, {x: 4.5, y: 1.5}, {x: 7, y: 1.5}]
+  let rect = court.getBoundingClientRect();
+  var positions = [
+    {x: 2, y: 3}
+    ,{x: 1.5, y: 8}
+    ,{x: 4.5, y: 8}
+    ,{x: 7.5, y: 8}
+    ,{x: 7, y: 3}
+    ,{x: 4.5, y: 1.5}
+  ]
 
-  // let players = document.querySelectorAll('.player-court');
-  // for(var i = 0; i < 3; i++) { // TODO only frontrow players for now
-  //   // console.log(phi)
-  //   const posX = positions[i].x
-  //   const posY = positions[i].y
-  //   console.log('x:' + posX + ', y:' + posY)
-  //   let calcTop = hOneM*posY + players[i].offsetHeight/2 + rect.top
-  //   let calcLeft = wOneM*posX + players[i].offsetWidth/2 + rect.left
+  const players = document.querySelectorAll(".player");
+  for(var i = 0; i < positions.length; i++) { // TODO only frontrow players for now
+    const posX = positions[i].x
+    const posY = positions[i].y
+    console.log('x:' + posX + ', y:' + posY)
 
-  //   players[i].style.top = calcTop + "px"
-  //   players[i].style.left = calcLeft + "px"
-  // }
+    const player = players[i]
 
+    let calcTop = hOneM*posY - player.offsetHeight/2 + rect.top + padding
+    let calcLeft = wOneM*posX - player.offsetWidth/2 + rect.left + padding
 
+    player.style.top = calcTop + "px"
+    player.style.left = calcLeft + "px"
+  }
+
+  for(var i = 0; i < positions.length; i++) { // TODO only frontrow players for now
+    const posX = positions[i].x
+    const posY = positions[i].y
+    console.log('x:' + posX + ', y:' + posY)
+
+    const player = players[i+6]
+
+    let calcTop = - hOneM*posY - player.offsetHeight/2 + rect.bottom - padding
+    let calcLeft = - wOneM*posX - player.offsetWidth/2 + rect.right - padding
+
+    player.style.top = calcTop + "px"
+    player.style.left = calcLeft + "px"
+  }
 }
 
 

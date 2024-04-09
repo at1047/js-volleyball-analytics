@@ -44,6 +44,10 @@ export class Contact {
     return contactDiv
   }
 
+  createRow() {
+    return this.time + "," + this.type + "," + this.pos + "," + this.player + "\r\n"
+  }
+
   prependZero(time) {
     return ("0" + time).slice(-2)
   }
