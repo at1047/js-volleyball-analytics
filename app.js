@@ -2,6 +2,7 @@ import { Contact } from './contact.js'
 import { Video } from './video.js'
 
 var contactList = []
+var selectedRow = null
 
 export function setup() {
   const video = new Video(560, 315)
@@ -36,7 +37,6 @@ export function setup() {
   let playerSelected
   document.addEventListener("click", (e) => {
     if (e.target.classList.contains("player")) {
-      console.log("clicked on: "+ e.target.dataset.value)
       e.target.classList.toggle("player-selected")
       playerSelected = e.target.dataset.value
 
@@ -55,6 +55,7 @@ export function setup() {
       contactListStr = contactListStr + contactList[i].createRow()
     }
     console.log(contactListStr)
+    console.log(JSON.stringify(contactList))
   });
 
   buttonClearContacts.addEventListener ("click", function() {
@@ -75,6 +76,14 @@ export function setup() {
 
       contactList = addNewContact(contactList, val, mouseDownPos, video.getTimestamp(), playerSelected)
       renderContacts(contactContainer)
+
+      const players = document.querySelectorAll(".player");
+      for(var i = 0; i < players.length; i++) { // TODO only frontrow players for now
+        if (players[i] != e.target) {
+          players[i].classList.remove("player-selected")
+        }
+      }
+      playerSelected = null
     }
   })
 
@@ -104,8 +113,13 @@ export function setup() {
 }
 
 function addNewContact(contactList, type, pos, time, playerSelected) {
+  if (selectedRow == null) {
     const contact = new Contact(type, pos, time, playerSelected)
     return [...contactList, contact]
+  } else {
+    console.log(selectedRow)
+    // selectedRow.update()
+  }
 }
 
 function renderContacts(container) {
@@ -120,6 +134,10 @@ function renderContacts(container) {
         contactList = contactList.filter((contact) => contact.time != newDiv.dataset.value)
         console.log(contactList)
         renderContacts(container, contactList)
+      } else {
+        newDiv.classList.toggle("contact-selected")
+        selectedRow = contactList.find((contact) => contact.time == newDiv.dataset.value)
+        console.log(selectedRow)
       }
     })
     container.appendChild(newDiv)

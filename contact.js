@@ -55,6 +55,12 @@ export class Contact {
     return contactDiv
   }
 
+  update(type, pos, player) {
+    this.type = type
+    this.pos = pos
+    this.player = player
+  }
+
   createRow() {
     return this.time + "," + this.type + "," + this.pos + "," + this.player + "\r\n"
   }

@@ -155,6 +155,10 @@ button {
   justify-content: space-around;
 }
 
+.contact-selected {
+  background-color: #3b3a3a;
+}
+
 #player {
   height: 400px;
   width: 712px;
