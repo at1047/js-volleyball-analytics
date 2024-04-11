@@ -53,10 +53,16 @@ document.querySelector('#app').innerHTML = `
           <div class="button-court button-hide" data-value="Pass">Pass</div>
           <div class="button-court button-hide" data-value="Set">Set</div>
           <div class="button-court button-hide" data-value="Hit">Hit</div>
+          <div class="button-court button-hide" data-value="Block">Block</div>
           <div class="button-court button-hide" data-value="Ground">Ground</div>
           <div class="button-court button-hide" data-value="Serve">Serve</div>
         </div>
       </div>
+    </div>
+  </div>
+  <div id="modal-output" class="modal-hide">
+    <div id="modal-output-closeButton">X</div>
+    <div id="modal-output-json">
     </div>
   </div>
 `

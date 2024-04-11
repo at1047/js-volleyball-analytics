@@ -19,6 +19,10 @@ export function setup() {
   const buttonSaveContacts = document.getElementById("button-saveContacts");
   const buttonClearContacts = document.getElementById("button-clearContacts");
 
+  const modalOutput= document.getElementById("modal-output");
+  const modalOutputJson = document.getElementById("modal-output-json");
+  const buttonModalOutputClose = document.getElementById("modal-output-closeButton");
+
   const padding = 50
 
   const courtHeight = rect.height - padding * 2
@@ -56,11 +60,17 @@ export function setup() {
     }
     console.log(contactListStr)
     console.log(JSON.stringify(contactList))
+    modalOutputJson.innerHTML = JSON.stringify(contactList)
+    modalOutput.classList.remove("modal-hide")
   });
 
   buttonClearContacts.addEventListener ("click", function() {
     contactList = []
     renderContacts(contactContainer)
+  });
+
+  buttonModalOutputClose.addEventListener ("click", function() {
+    modalOutput.classList.add("modal-hide")
   });
 
   let mouseDownPos
@@ -118,7 +128,9 @@ function addNewContact(contactList, type, pos, time, playerSelected) {
     return [...contactList, contact]
   } else {
     console.log(selectedRow)
-    // selectedRow.update()
+    selectedRow.update(type, pos, playerSelected) // Modify object in place
+    selectedRow = null
+    return contactList
   }
 }
 
@@ -190,8 +202,11 @@ function addCircleMenu(court, top, left) {
   for(var i = 0, l = items.length; i < l; i++) {
     items[i].classList.remove("button-hide")
     let phi = theta * i
+
+    const verticalOffset= Math.sin(2*Math.abs(phi-Math.PI)) * (-6)
+
     // console.log(phi)
-    let calcTop = top - Math.cos(phi)*offset - items[i].offsetHeight/2
+    let calcTop = top - Math.cos(phi)*offset - items[i].offsetHeight/2 + verticalOffset
     let calcLeft = left + Math.sin(phi)*offset - items[i].offsetWidth/2
 
     items[i].style.top = calcTop + "px"
