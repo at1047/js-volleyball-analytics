@@ -13,6 +13,7 @@ export class Contact {
   createDiv() {
     var contactDiv = document.createElement("div")
     contactDiv.classList.add("contact")
+    contactDiv.classList.add("contact-row")
     // contactDiv.style.width = "500px"
     // contactDiv.style.height = "20px"
     contactDiv.style.color = "white"
